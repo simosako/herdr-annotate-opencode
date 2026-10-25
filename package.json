@@ -1,0 +1,23 @@
+{
+  "name": "herdr-annotate-opencode",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Herdr plugin: open the annotate editor at the OpenCode session's current directory.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Akira Shimosako",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simosako/herdr-annotate-opencode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/simosako/herdr-annotate-opencode/issues"
+  },
+  "homepage": "https://github.com/simosako/herdr-annotate-opencode#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test open.test.mjs"
+  }
+}

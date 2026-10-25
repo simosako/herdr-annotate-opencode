@@ -1,0 +1,13 @@
+id = "annotate-opencode"
+name = "OpenCode Location for Annotate"
+version = "0.1.0"
+min_herdr_version = "0.9.5"
+description = "Open the annotate editor at the OpenCode session's current directory."
+platforms = ["linux", "macos"]
+
+[[actions]]
+id = "open"
+title = "Annotate: current OpenCode location"
+description = "Resolve the invoking pane's OpenCode session before opening Annotate."
+contexts = ["workspace", "pane"]
+command = ["node", "open.mjs"]
