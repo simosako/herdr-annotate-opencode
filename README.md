@@ -1,45 +1,72 @@
 # OpenCode Location for Annotate
 
-A small [Herdr](https://herdr.dev) plugin that opens the
-[annotate](https://herdr.dev/plugins/) editor at the **current OpenCode session
-directory**, instead of the pane's original working directory.
+A small [Herdr](https://herdr.dev) plugin that complements
+[Herdr Annotate](https://github.com/plannotator/herdr-annotate): it opens Herdr
+Annotate's document review at the **current OpenCode session directory**, instead
+of the pane's original working directory.
 
 [日本語版 README はこちら](README.ja.md)
 
 ## Why
 
-`annotate` opens its document picker at the working directory of the pane that
-invoked it. That is usually correct, but an OpenCode session can move between
-directories — for example after a Herdr worktree switch. The pane was created in
-one directory, the session now lives in another, and `annotate` still shows the
-stale one.
+[Herdr Annotate](https://github.com/plannotator/herdr-annotate) (plugin id
+`annotate`) is the Herdr plugin for commenting on terminal text and reviewing
+documents and agent replies. Its document review, powered by
+[plannotator-tui](https://github.com/plannotator/plannotator-tui), opens the
+picker at the working directory of the pane that invoked it. That is usually
+correct, but an OpenCode session can move between directories — for example after
+a Herdr worktree switch. The pane was created in one directory, the session now
+lives in another, and Herdr Annotate still shows the stale one.
 
-This plugin leaves Herdr, OpenCode, and `annotate` untouched. It only resolves
-the pane's OpenCode session first, then delegates to the `annotate` plugin's own
-`open` action with the correct directory.
+This plugin leaves Herdr, OpenCode, and Herdr Annotate untouched. It only resolves
+the pane's OpenCode session first, then delegates to the `open` action that Herdr
+Annotate already registers, with the correct directory.
+
+## Relationship to Herdr Annotate
+
+This is a companion plugin, not a fork or a replacement. It ships no review UI and
+does not modify Herdr Annotate; it looks up the installed `annotate` plugin with
+`herdr plugin list --json` and invokes its `open` action.
+
+- Herdr Annotate: https://github.com/plannotator/herdr-annotate
+- Review UI: https://github.com/plannotator/plannotator-tui
+
+Install Herdr Annotate first, using the **Full** install. The Lite variant of
+Herdr Annotate provides terminal annotations only and has no `open` action, so
+this plugin cannot be used with it.
+
+If Herdr Annotate ever resolves the OpenCode session by itself, this plugin would
+become unnecessary.
 
 ## Requirements
 
 - Herdr 0.9.5 or newer
 - Node.js 18 or newer
+- [Herdr Annotate](https://github.com/plannotator/herdr-annotate) installed and
+  enabled from the **Full** install, so that the `annotate` plugin provides its
+  `open` action
 - OpenCode V2 with the Herdr OpenCode integration enabled, so the pane reports
   an `agent_session` of kind `id`
-- The `annotate` plugin installed and enabled, with an action named `open`
 - The session directory must exist on the machine running the Herdr server. With
   `herdr --remote`, paths are resolved on the remote host, not on your local
   client.
 
-Tested with Herdr 0.9.5, OpenCode V2, and the `annotate` plugin that provides the
-`open` action.
+The `open` action used here is the one shipped by Herdr Annotate 0.9.x
+(`plannotator-tui herdr open`).
 
 ## Install
 
-Install from GitHub:
+Install [Herdr Annotate](https://github.com/plannotator/herdr-annotate) first if it
+is not installed yet:
+
+```sh
+herdr plugin install plannotator/herdr-annotate
+```
+
+Then install this plugin:
 
 ```sh
 herdr plugin install simosako/herdr-annotate-opencode
-herdr config check
-herdr server reload-config
 ```
 
 For development, link a checkout instead:
@@ -49,8 +76,9 @@ git clone https://github.com/simosako/herdr-annotate-opencode.git
 herdr plugin link "$PWD/herdr-annotate-opencode"
 ```
 
-Then bind a key to `annotate-opencode.open`. If a key is already bound to
-`annotate.open`, change only its `command`:
+Then bind a key to `annotate-opencode.open`. Herdr Annotate's Full install binds
+`prefix+o` to `annotate.open` for document review; to keep that key, change only
+its `command`:
 
 ```toml
 [[keys.command]]
@@ -75,12 +103,12 @@ herdr server reload-config
 3. Call `opencode api get /api/session/<id>` and read
    `data.location.directory`.
 4. Verify that the session ID did not change and that the directory exists.
-5. Find the enabled `annotate` plugin's `open` action, then launch it with the
-   directory as an argument and `--deliver-to <pane>` so the overlay returns to
-   the right pane.
+5. Find the enabled [Herdr Annotate](https://github.com/plannotator/herdr-annotate)
+   plugin's `open` action, then launch it with the directory as an argument and
+   `--deliver-to <pane>` so the overlay returns to the right pane.
 
-On a pane whose agent is not OpenCode, the plugin reproduces the original
-`annotate` behavior. On any OpenCode lookup failure it does **not** silently fall
+On a pane whose agent is not OpenCode, the plugin reproduces the original Herdr
+Annotate behavior. On any OpenCode lookup failure it does **not** silently fall
 back to the pane directory: it shows a Herdr notification and records the reason
 in the plugin log.
 
@@ -172,12 +200,12 @@ node open.mjs --dry-run --pane w1:p1
   "sessionID": "ses_...",
   "directory": "/home/you/src/project-worktree",
   "mode": "opencode-session",
-  "launcher": "/home/you/.local/share/herdr/plugins/.../bin/annotate"
+  "launcher": "/home/you/.local/share/herdr/plugins/.../bin/plannotator-tui.exe"
 }
 ```
 
 `mode` is `opencode-session` when the directory was resolved from OpenCode, and
-`original-annotate` when the pane is not OpenCode and the original `annotate`
+`original-annotate` when the pane is not OpenCode and Herdr Annotate's original
 behavior applies.
 
 `--pane` is a diagnostic aid. Actually opening still requires that pane to be
@@ -198,9 +226,9 @@ Exit codes: `0` success, `1` runtime failure, `2` invalid usage.
   opened.
 - The plugin follows sessions that move (for example after a worktree switch); it
   does not create worktrees itself.
-- The `annotate` lookup depends on `herdr plugin list --json` and on the shape of
-  the `annotate` `open` action command. Changes in either can require a plugin
-  update.
+- The lookup depends on [Herdr Annotate](https://github.com/plannotator/herdr-annotate)'s
+  `herdr plugin list --json` metadata and on the shape of its `open` action
+  command. Changes in either can require a plugin update.
 - The OpenCode V2 session API shape can change between releases; failures are
   reported instead of silently opening the wrong directory.
 
@@ -211,8 +239,7 @@ herdr plugin uninstall simosako/herdr-annotate-opencode
 ```
 
 Point your keybinding back to `annotate.open` if you changed it. Uninstalling
-does not modify the `annotate` plugin, its configuration, or your OpenCode
-session data.
+does not modify Herdr Annotate, its configuration, or your OpenCode session data.
 
 ## Development
 

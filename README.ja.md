@@ -2,42 +2,70 @@
 
 [English README](README.md)
 
-Herdr のプラグインです。`annotate` のドキュメントピッカーを、ペインの元の作業
+[Herdr Annotate](https://github.com/plannotator/herdr-annotate) を補完する
+Herdr プラグインです。Herdr Annotate のドキュメントレビューを、ペインの元の作業
 ディレクトリではなく、**OpenCode セッションの現在のディレクトリ**で開きます。
 
 ## なぜ必要か
 
-`annotate` は、呼び出したペインの作業ディレクトリでピッカーを開きます。通常は
-それで正しく動きますが、OpenCode のセッションはディレクトリを移動できます。
-たとえば Herdr の worktree 切り替えの後では、ペインは元のディレクトリに作成され
-たまま、セッションだけが新しい worktree に移っています。この状態で `annotate`
-を開くと、古いディレクトリが表示されます。
+[Herdr Annotate](https://github.com/plannotator/herdr-annotate)（プラグイン ID
+`annotate`）は、ターミナル上のテキストへのコメントや、ドキュメント・エージェント
+応答のレビューを行う Herdr プラグインです。そのドキュメントレビューは
+[plannotator-tui](https://github.com/plannotator/plannotator-tui) が担っており、
+呼び出したペインの作業ディレクトリでピッカーを開きます。通常はそれで正しく動き
+ますが、OpenCode のセッションはディレクトリを移動できます。たとえば Herdr の
+worktree 切り替えの後では、ペインは元のディレクトリに作成されたまま、セッション
+だけが新しい worktree に移っており、Herdr Annotate は古いディレクトリを表示し
+ます。
 
-このプラグインは Herdr・OpenCode・`annotate` のいずれも変更しません。先にペイン
-の OpenCode セッションを解決し、正しいディレクトリを添えて `annotate` プラグイン
-自身の `open` アクションに処理を渡します。
+このプラグインは Herdr・OpenCode・Herdr Annotate のいずれも変更しません。先に
+ペインの OpenCode セッションを解決し、正しいディレクトリを添えて、Herdr Annotate
+が登録している `open` アクションに処理を渡します。
+
+## Herdr Annotate との関係
+
+本プラグインは補完用であり、フォークでも代替でもありません。レビュー UI を同梱
+せず、Herdr Annotate も変更しません。インストール済みの `annotate` プラグインを
+`herdr plugin list --json` で調べ、その `open` アクションを呼び出します。
+
+- Herdr Annotate: https://github.com/plannotator/herdr-annotate
+- レビュー UI: https://github.com/plannotator/plannotator-tui
+
+先に Herdr Annotate を **Full** インストールで導入してください。Herdr Annotate の
+Lite 版はターミナル注釈のみで `open` アクションを持たないため、本プラグインとは
+組み合わせられません。
+
+将来 Herdr Annotate 自身が OpenCode のセッションを解決するようになれば、本
+プラグインは不要になります。
 
 ## 要件
 
 - Herdr 0.9.5 以降
 - Node.js 18 以降
+- [Herdr Annotate](https://github.com/plannotator/herdr-annotate) が **Full**
+  インストールで導入済み・有効で、`annotate` プラグインが `open` アクションを
+  提供していること
 - OpenCode V2 と、Herdr の OpenCode integration（ペインが kind `id` の
   `agent_session` を報告できること）
-- `annotate` プラグインがインストール済み・有効で、`open` アクションを持つこと
 - セッションディレクトリが、Herdr サーバーを実行しているマシン上に存在すること。
   `herdr --remote` を使う場合、パスはローカル端末ではなくリモート側で解決されます。
 
-動作確認は Herdr 0.9.5、OpenCode V2、`open` アクションを持つ `annotate` プラグ
-インの組み合わせで行っています。
+ここで使う `open` アクションは、Herdr Annotate 0.9.x が提供するもの
+（`plannotator-tui herdr open`）です。
 
 ## インストール
 
-GitHub からインストールする場合:
+まだの場合は、先に [Herdr Annotate](https://github.com/plannotator/herdr-annotate)
+をインストールします。
+
+```sh
+herdr plugin install plannotator/herdr-annotate
+```
+
+続いて本プラグインをインストールします。
 
 ```sh
 herdr plugin install simosako/herdr-annotate-opencode
-herdr config check
-herdr server reload-config
 ```
 
 開発時はチェックアウトをリンクします:
@@ -47,8 +75,9 @@ git clone https://github.com/simosako/herdr-annotate-opencode.git
 herdr plugin link "$PWD/herdr-annotate-opencode"
 ```
 
-次に、キーを `annotate-opencode.open` に割り当てます。すでに `annotate.open` に
-キーを割り当てている場合は、その `command` だけを変更します。
+次に、キーを `annotate-opencode.open` に割り当てます。Herdr Annotate の Full
+インストールは、ドキュメントレビューに `prefix+o` を `annotate.open` として割り
+当てています。そのキーを維持する場合は、`command` だけを変更します。
 
 ```toml
 [[keys.command]]
@@ -73,11 +102,12 @@ herdr server reload-config
 3. `opencode api get /api/session/<id>` を呼び、`data.location.directory` を
    読みます。
 4. セッション ID が変わっていないことと、ディレクトリが存在することを確認します。
-5. 有効な `annotate` プラグインの `open` アクションを見つけ、ディレクトリと
-   `--deliver-to <pane>` を添えて起動します。オーバーレイは正しいペインに戻ります。
+5. 有効な [Herdr Annotate](https://github.com/plannotator/herdr-annotate) の
+   `open` アクションを見つけ、ディレクトリと `--deliver-to <pane>` を添えて
+   起動します。オーバーレイは正しいペインに戻ります。
 
-OpenCode 以外のエージェントのペインでは、元の `annotate` の動作をそのまま再現
-します。OpenCode の情報取得に失敗した場合は、ペインのディレクトリへ黙って
+OpenCode 以外のエージェントのペインでは、Herdr Annotate 本来の動作をそのまま
+再現します。OpenCode の情報取得に失敗した場合は、ペインのディレクトリへ黙って
 フォールバックせず、Herdr の通知とプラグインログに理由を出します。
 
 コマンドはシェルを介さず argv 配列で実行するため、空白・引用符・シェルの
@@ -166,12 +196,12 @@ node open.mjs --dry-run --pane w1:p1
   "sessionID": "ses_...",
   "directory": "/home/you/src/project-worktree",
   "mode": "opencode-session",
-  "launcher": "/home/you/.local/share/herdr/plugins/.../bin/annotate"
+  "launcher": "/home/you/.local/share/herdr/plugins/.../bin/plannotator-tui.exe"
 }
 ```
 
 `mode` は、OpenCode からディレクトリを解決した場合は `opencode-session`、
-OpenCode 以外のペインで元の `annotate` 動作になる場合は
+OpenCode 以外のペインで Herdr Annotate 本来の動作になる場合は
 `original-annotate` です。
 
 `--pane` は診断用です。実際に開く場合は、そのペインがアクティブである必要が
@@ -192,9 +222,9 @@ herdr plugin log list --plugin annotate-opencode
   が親セッションの ID を報告する場合は、親のディレクトリを開きます。
 - セッションの移動（worktree 切り替えなど）には追従しますが、worktree 自体の
   作成は行いません。
-- `annotate` の解決は `herdr plugin list --json` の出力と、`annotate` の `open`
-  アクションのコマンド形式に依存します。どちらかが変わった場合は更新が必要に
-  なることがあります。
+- [Herdr Annotate](https://github.com/plannotator/herdr-annotate) の解決は
+  `herdr plugin list --json` の出力と、その `open` アクションのコマンド形式に
+  依存します。どちらかが変わった場合は更新が必要になることがあります。
 - OpenCode V2 のセッション API はリリース間で形が変わる可能性があります。失敗
   時は、誤ったディレクトリを黙って開くのではなくエラーとして報告します。
 
@@ -205,8 +235,7 @@ herdr plugin uninstall simosako/herdr-annotate-opencode
 ```
 
 キー割り当てを変更した場合は `annotate.open` に戻してください。アンインストール
-しても `annotate` プラグイン、その設定、OpenCode のセッションデータは変更され
-ません。
+しても Herdr Annotate、その設定、OpenCode のセッションデータは変更されません。
 
 ## 開発
 
