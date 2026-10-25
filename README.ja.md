@@ -13,10 +13,10 @@ Herdr プラグインです。Herdr Annotate のドキュメントレビュー�
 応答のレビューを行う Herdr プラグインです。そのドキュメントレビューは
 [plannotator-tui](https://github.com/plannotator/plannotator-tui) が担っており、
 呼び出したペインの作業ディレクトリでピッカーを開きます。通常はそれで正しく動き
-ますが、OpenCode のセッションはディレクトリを移動できます。たとえば Herdr の
-worktree 切り替えの後では、ペインは元のディレクトリに作成されたまま、セッション
-だけが新しい worktree に移っており、Herdr Annotate は古いディレクトリを表示し
-ます。
+ますが、OpenCode のセッションはディレクトリを移動できます。たとえば OpenCode
+の worktree 機能でセッションを新しい worktree へ移した後では、ペインは元の
+ディレクトリに作成されたままなのに、Herdr Annotate は移動前のディレクトリを
+表示します。
 
 このプラグインは Herdr・OpenCode・Herdr Annotate のいずれも変更しません。先に
 ペインの OpenCode セッションを解決し、正しいディレクトリを添えて、Herdr Annotate
@@ -220,8 +220,8 @@ herdr plugin log list --plugin annotate-opencode
   開けません。
 - Herdr が報告するセッション ID を使用します。子セッション表示中に integration
   が親セッションの ID を報告する場合は、親のディレクトリを開きます。
-- セッションの移動（worktree 切り替えなど）には追従しますが、worktree 自体の
-  作成は行いません。
+- セッションの移動（OpenCode がセッションを worktree へ移した場合など）には
+  追従しますが、worktree 自体の作成は行いません。
 - [Herdr Annotate](https://github.com/plannotator/herdr-annotate) の解決は
   `herdr plugin list --json` の出力と、その `open` アクションのコマンド形式に
   依存します。どちらかが変わった場合は更新が必要になることがあります。

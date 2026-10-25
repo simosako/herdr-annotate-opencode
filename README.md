@@ -14,9 +14,10 @@ of the pane's original working directory.
 documents and agent replies. Its document review, powered by
 [plannotator-tui](https://github.com/plannotator/plannotator-tui), opens the
 picker at the working directory of the pane that invoked it. That is usually
-correct, but an OpenCode session can move between directories — for example after
-a Herdr worktree switch. The pane was created in one directory, the session now
-lives in another, and Herdr Annotate still shows the stale one.
+correct, but an OpenCode session can move between directories — for example when
+OpenCode creates a worktree and moves the session into it. The pane was created
+in one directory, the session now lives in another, and Herdr Annotate still
+shows the stale one.
 
 This plugin leaves Herdr, OpenCode, and Herdr Annotate untouched. It only resolves
 the pane's OpenCode session first, then delegates to the `open` action that Herdr
@@ -224,8 +225,8 @@ Exit codes: `0` success, `1` runtime failure, `2` invalid usage.
 - Herdr reports the session ID it knows about. If the integration reports a
   parent session while a child session is displayed, the parent's directory is
   opened.
-- The plugin follows sessions that move (for example after a worktree switch); it
-  does not create worktrees itself.
+- The plugin follows sessions that move (for example when OpenCode moves a
+  session into a worktree); it does not create worktrees itself.
 - The lookup depends on [Herdr Annotate](https://github.com/plannotator/herdr-annotate)'s
   `herdr plugin list --json` metadata and on the shape of its `open` action
   command. Changes in either can require a plugin update.
