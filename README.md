@@ -95,13 +95,52 @@ pane.
 
 ## Configuration
 
-The plugin reads `settings.json` from its Herdr config directory. The file is
-optional.
+Most setups need no configuration. Without a `settings.json`, the plugin runs
+`opencode api`, which talks to the local OpenCode background service.
+
+### When do I need `settings.json`?
+
+Create the file only when that default lookup is not enough. The typical cases
+are:
+
+- **The Herdr server cannot find `opencode`.** A server started by systemd, a GUI,
+  or without your shell profile may not see mise/asdf shims or custom `PATH`
+  entries. Use the absolute path of the executable as the first element.
+- **The session lives on a different OpenCode server.** If you use OpenCode with
+  `--server` (a shared service, or another host or port), point the plugin at the
+  same server. Otherwise it looks at the local background service, which has no
+  such session.
+- **You reach OpenCode through a wrapper.** An SSH tunnel script, a launcher that
+  exports environment variables, or a container entrypoint can be the first
+  element.
+
+Do not use `--standalone` here: it starts a private server that knows nothing
+about your running sessions, so the session lookup always fails.
+
+### Setup
 
 ```sh
 herdr plugin config-dir annotate-opencode
 cp settings.example.json "$(herdr plugin config-dir annotate-opencode)/settings.json"
 ```
+
+Edit the copied file. The default value is:
+
+```json
+{
+  "opencodeApi": ["opencode", "api"]
+}
+```
+
+A custom executable path:
+
+```json
+{
+  "opencodeApi": ["/home/you/.local/share/mise/shims/opencode", "api"]
+}
+```
+
+A different OpenCode server:
 
 ```json
 {
@@ -109,14 +148,12 @@ cp settings.example.json "$(herdr plugin config-dir annotate-opencode)/settings.
 }
 ```
 
-`opencodeApi` is the argv prefix used to reach the OpenCode API. The default is
-`["opencode", "api"]`. `opencodeApi` must be a non-empty array of strings; it is
-not expanded by a shell.
+`opencodeApi` is the argv prefix used to reach the OpenCode API. It must be a
+non-empty array of strings and is never expanded by a shell.
 
 Each command times out after 15 seconds. Do not store credentials in this file:
-configure authentication in OpenCode itself. If the Herdr server cannot find
-`opencode` on its `PATH`, use the absolute path of the executable as the first
-element.
+configure authentication in OpenCode itself. Deleting `settings.json` restores
+the defaults.
 
 ## Diagnostics
 

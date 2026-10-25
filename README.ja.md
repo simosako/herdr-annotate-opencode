@@ -90,13 +90,52 @@ OpenCode 以外のエージェントのペインでは、元の `annotate` の�
 
 ## 設定
 
-プラグインは Herdr の設定ディレクトリにある `settings.json` を読みます。この
-ファイルは任意です。
+多くの環境では設定は不要です。`settings.json` が無い場合、プラグインは
+`opencode api` を実行し、ローカルで動いている OpenCode の background service に
+接続します。
+
+### `settings.json` が必要になるのはどんなときか
+
+既定の方法で足りない場合だけ、このファイルを作成します。代表的なケースは次の
+3つです。
+
+- **Herdr サーバーから `opencode` が見つからない**: systemd や GUI から起動した
+  サーバーでは、mise/asdf の shim や独自の `PATH` が引き継がれないことがあります。
+  先頭要素に実行ファイルの絶対パスを指定します。
+- **セッションが別の OpenCode サーバー上にある**: `--server` で共有サービスや
+  別ホスト・別ポートの OpenCode に接続している場合は、同じサーバーを指定します。
+  指定しないとローカルの background service を参照するため、セッションが
+  見つかりません。
+- **ラッパー経由で OpenCode に到達したい**: SSH トンネルを張るスクリプト、環境
+  変数を設定するランチャー、コンテナのエントリポイントなどを先頭要素にできます。
+
+`--standalone` は指定しないでください。プライベートサーバーを起動するため、
+実行中のセッションが存在せず、取得は必ず失敗します。
+
+### 設定方法
 
 ```sh
 herdr plugin config-dir annotate-opencode
 cp settings.example.json "$(herdr plugin config-dir annotate-opencode)/settings.json"
 ```
+
+コピーしたファイルを編集します。既定値は次のとおりです。
+
+```json
+{
+  "opencodeApi": ["opencode", "api"]
+}
+```
+
+実行ファイルのパスを指定する例:
+
+```json
+{
+  "opencodeApi": ["/home/you/.local/share/mise/shims/opencode", "api"]
+}
+```
+
+別の OpenCode サーバーを指定する例:
 
 ```json
 {
@@ -104,13 +143,11 @@ cp settings.example.json "$(herdr plugin config-dir annotate-opencode)/settings.
 }
 ```
 
-`opencodeApi` は OpenCode API に到達するための argv プレフィックスです。既定値は
-`["opencode", "api"]` です。空でない文字列の配列で指定し、シェル展開は行われ
-ません。
+`opencodeApi` は OpenCode API に到達するための argv プレフィックスです。空でない
+文字列の配列で指定し、シェル展開は行われません。
 
 各コマンドは 15 秒でタイムアウトします。認証情報はこのファイルに書かず、
-OpenCode 側で設定してください。Herdr サーバーから `opencode` が見つからない
-場合は、先頭要素に実行ファイルの絶対パスを指定します。
+OpenCode 側で設定してください。`settings.json` を削除すると既定値に戻ります。
 
 ## 診断
 
